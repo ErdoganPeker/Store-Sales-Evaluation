@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Sales Evaluation | Demo</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#050508;color:#e2e8f0;font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+    .card{background:#13131f;border:1px solid #1e1e35;border-radius:16px;padding:2rem;max-width:520px;width:100%;box-shadow:0 0 40px #00d4ff11}
+    h1{font-size:1.5rem;font-weight:800;margin-bottom:.5rem;background:linear-gradient(135deg,#00d4ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    p.sub{color:#64748b;font-size:.875rem;margin-bottom:1.5rem}
+    label{display:block;font-size:.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+    input,select{width:100%;background:#0e0e16;border:1px solid #1e1e35;border-radius:8px;padding:.6rem .8rem;color:#e2e8f0;font-size:.875rem;margin-bottom:1rem;outline:none;appearance:none}
+    input:focus,select:focus{border-color:#00d4ff44}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    button{width:100%;padding:.85rem;background:#00d4ff;color:#050508;font-weight:700;font-size:.9rem;border:none;border-radius:8px;cursor:pointer;margin-top:.5rem;transition:background .2s}
+    button:hover{background:#00b8d9}
+    #result{display:none;margin-top:1.5rem;background:#0e0e16;border:1px solid #00d4ff22;border-radius:10px;padding:1.25rem;text-align:center}
+    .pred{font-size:1.8rem;font-weight:800;color:#00d4ff;margin:.5rem 0}
+    .conf{font-size:.8rem;color:#64748b;margin-top:.3rem}
+    .badge{display:inline-block;background:#00d4ff15;border:1px solid #00d4ff33;color:#00d4ff;border-radius:999px;padding:.25rem .75rem;font-size:.75rem;margin-bottom:1rem}
+    .promo-toggle{display:flex;gap:.75rem;margin-bottom:1rem}
+    .promo-btn{flex:1;padding:.6rem;background:#0e0e16;border:1px solid #1e1e35;border-radius:8px;color:#94a3b8;cursor:pointer;font-size:.875rem;text-align:center;transition:.2s}
+    .promo-btn.active{background:#00d4ff22;border-color:#00d4ff55;color:#00d4ff;font-weight:600}
+    .divider{border:none;border-top:1px solid #1e1e35;margin:1rem 0}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">AI Demo</span>
+    <h1>Store Sales Evaluation</h1>
+    <p class="sub">Estimate weekly store sales based on location, store type, season, and promotions using a Gradient Boosting model.</p>
+    <hr class="divider">
+    <label>State</label>
+    <select id="state">
+      <option value="California">California</option>
+      <option value="Texas">Texas</option>
+      <option value="Florida">Florida</option>
+      <option value="New York" selected>New York</option>
+      <option value="Illinois">Illinois</option>
+    </select>
+    <div class="row">
+      <div>
+        <label>Store Type</label>
+        <select id="store_type">
+          <option value="A" selected>Type A (Large)</option>
+          <option value="B">Type B (Medium)</option>
+          <option value="C">Type C (Small)</option>
+        </select>
+      </div>
+      <div>
+        <label>Season / Quarter</label>
+        <select id="season">
+          <option value="Q1 (Jan-Mar)">Q1 (Jan-Mar)</option>
+          <option value="Q2 (Apr-Jun)">Q2 (Apr-Jun)</option>
+          <option value="Q3 (Jul-Sep)">Q3 (Jul-Sep)</option>
+          <option value="Q4 (Oct-Dec)" selected>Q4 (Oct-Dec)</option>
+        </select>
+      </div>
+    </div>
+    <label>Temperature (F)</label>
+    <input type="number" id="temperature" value="72" min="20" max="110">
+    <label>Promotion Active</label>
+    <div class="promo-toggle">
+      <div class="promo-btn" id="promo-no" onclick="setPromo(0)">No Promotion</div>
+      <div class="promo-btn active" id="promo-yes" onclick="setPromo(1)">Active Promotion</div>
+    </div>
+    <input type="hidden" id="promo" value="1">
+    <button onclick="predict()">Evaluate Sales</button>
+    <div id="result">
+      <p style="color:#64748b;font-size:.8rem">Estimated Weekly Sales</p>
+      <div class="pred" id="pred-value">-</div>
+      <div class="conf" id="conf-value">-</div>
+    </div>
+  </div>
+  <script>
+  function setPromo(val) {
+    document.getElementById('promo').value = val;
+    document.getElementById('promo-yes').classList.toggle('active', val === 1);
+    document.getElementById('promo-no').classList.toggle('active', val === 0);
+  }
+  async function predict() {
+    const data = {
+      state: document.getElementById('state').value,
+      store_type: document.getElementById('store_type').value,
+      season: document.getElementById('season').value,
+      promo: parseInt(document.getElementById('promo').value),
+      temperature: parseFloat(document.getElementById('temperature').value),
+    };
+    try {
+      const r = await fetch('/predict', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+      const j = await r.json();
+      document.getElementById('pred-value').textContent = j.prediction;
+      document.getElementById('conf-value').textContent = 'Model Confidence: ' + (j.confidence * 100).toFixed(0) + '%';
+      document.getElementById('result').style.display = 'block';
+    } catch(e) {
+      alert('Error: ' + e.message);
+    }
+  }
+  </script>
+</body>
+</html>
