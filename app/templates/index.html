@@ -1,103 +1,760 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Store Sales Evaluation | Demo</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#050508;color:#e2e8f0;font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
-    .card{background:#13131f;border:1px solid #1e1e35;border-radius:16px;padding:2rem;max-width:520px;width:100%;box-shadow:0 0 40px #00d4ff11}
-    h1{font-size:1.5rem;font-weight:800;margin-bottom:.5rem;background:linear-gradient(135deg,#00d4ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    p.sub{color:#64748b;font-size:.875rem;margin-bottom:1.5rem}
-    label{display:block;font-size:.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
-    input,select{width:100%;background:#0e0e16;border:1px solid #1e1e35;border-radius:8px;padding:.6rem .8rem;color:#e2e8f0;font-size:.875rem;margin-bottom:1rem;outline:none;appearance:none}
-    input:focus,select:focus{border-color:#00d4ff44}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-    button{width:100%;padding:.85rem;background:#00d4ff;color:#050508;font-weight:700;font-size:.9rem;border:none;border-radius:8px;cursor:pointer;margin-top:.5rem;transition:background .2s}
-    button:hover{background:#00b8d9}
-    #result{display:none;margin-top:1.5rem;background:#0e0e16;border:1px solid #00d4ff22;border-radius:10px;padding:1.25rem;text-align:center}
-    .pred{font-size:1.8rem;font-weight:800;color:#00d4ff;margin:.5rem 0}
-    .conf{font-size:.8rem;color:#64748b;margin-top:.3rem}
-    .badge{display:inline-block;background:#00d4ff15;border:1px solid #00d4ff33;color:#00d4ff;border-radius:999px;padding:.25rem .75rem;font-size:.75rem;margin-bottom:1rem}
-    .promo-toggle{display:flex;gap:.75rem;margin-bottom:1rem}
-    .promo-btn{flex:1;padding:.6rem;background:#0e0e16;border:1px solid #1e1e35;border-radius:8px;color:#94a3b8;cursor:pointer;font-size:.875rem;text-align:center;transition:.2s}
-    .promo-btn.active{background:#00d4ff22;border-color:#00d4ff55;color:#00d4ff;font-weight:600}
-    .divider{border:none;border-top:1px solid #1e1e35;margin:1rem 0}
-  </style>
+<meta charset="UTF-8">
+<script>
+(function(){
+  try{
+    var saved = localStorage.getItem('sse-theme');
+    var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  }catch(e){}
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Store Sales Evaluation | Favorita Retail Forecasting</title>
+<style>
+  :root{
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", "Roboto Mono", monospace;
+
+    --page-bg: #EDF0EC;
+    --card-bg: #FFFFFF;
+    --card-bg-2: #F7F8F5;
+    --ink-1: #12140F;
+    --ink-2: #5B6259;
+    --ink-3: #8A9086;
+    --border: rgba(18,20,15,0.13);
+    --border-strong: rgba(18,20,15,0.22);
+    --accent: #D95926;
+    --accent-ink: #FFFFFF;
+    --accent-soft: rgba(217,89,38,0.12);
+    --focus: #2A78D6;
+    --good: #0CA30C;
+    --critical: #D03B3B;
+    --critical-soft: rgba(208,59,59,0.12);
+    --shadow: 0 1px 2px rgba(18,20,15,0.06), 0 12px 28px -16px rgba(18,20,15,0.22);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 7px;
+  }
+  :root[data-theme="dark"]{
+    --page-bg: #0D0F0C;
+    --card-bg: #161914;
+    --card-bg-2: #1C201A;
+    --ink-1: #F3F5EF;
+    --ink-2: #B7C0B2;
+    --ink-3: #7C847A;
+    --border: rgba(243,245,239,0.12);
+    --border-strong: rgba(243,245,239,0.22);
+    --accent: #E8712F;
+    --accent-ink: #14100B;
+    --accent-soft: rgba(232,113,47,0.16);
+    --focus: #5B9DE8;
+    --good: #38C43C;
+    --critical: #E8635F;
+    --critical-soft: rgba(232,99,95,0.16);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 20px 40px -20px rgba(0,0,0,0.6);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{color-scheme:light dark}
+  html[data-theme="dark"]{color-scheme:dark}
+  html[data-theme="light"]{color-scheme:light}
+  body{
+    margin:0;
+    font-family:var(--font-ui);
+    background:
+      radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0) 0 0/22px 22px,
+      var(--page-bg);
+    color:var(--ink-1);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .page{max-width:1180px;margin:0 auto;padding:1.75rem 1.25rem 3rem}
+  @media (min-width:720px){ .page{padding:2.5rem 2rem 4rem} }
+
+  a{color:var(--focus)}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+
+  /* ---------- header ---------- */
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.35rem}
+  .brand{display:flex;align-items:center;gap:.85rem}
+  .brand-mark{
+    width:44px;height:44px;flex:none;border-radius:10px;
+    background:linear-gradient(155deg,var(--accent),#B9451C);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-weight:700;font-size:1.05rem;letter-spacing:-.02em;
+    box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font-family:var(--font-mono);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-3);margin:0 0 .18rem;
+  }
+  h1{font-size:clamp(1.35rem,2.6vw,1.7rem);font-weight:800;letter-spacing:-.02em;margin:0;line-height:1.15}
+  .topbar-actions{display:flex;align-items:center;gap:.6rem}
+  .status-pill{
+    display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--ink-2);
+    background:var(--card-bg);border:1px solid var(--border);border-radius:999px;padding:.4rem .7rem .4rem .55rem;
+    font-family:var(--font-mono);
+  }
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3);flex:none}
+  .status-dot.on{background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb, var(--good) 22%, transparent)}
+  .status-dot.off{background:var(--critical);box-shadow:0 0 0 3px color-mix(in srgb, var(--critical) 22%, transparent)}
+  .theme-toggle{
+    width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);
+    color:var(--ink-1);cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .theme-toggle:hover{border-color:var(--border-strong)}
+  .theme-toggle:active{transform:scale(.94)}
+
+  .lede{color:var(--ink-2);font-size:.95rem;line-height:1.55;max-width:62ch;margin:.85rem 0 1.6rem}
+
+  /* ---------- banner ---------- */
+  .banner{
+    display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
+    border:1px solid var(--critical);background:var(--critical-soft);color:var(--ink-1);
+    border-radius:var(--radius-md);padding:.85rem 1rem;font-size:.85rem;margin-bottom:1.5rem;
+  }
+  .banner strong{font-weight:700}
+  .banner button{
+    margin-left:auto;font-family:var(--font-ui);font-size:.8rem;font-weight:700;
+    background:var(--card-bg);border:1px solid var(--border-strong);color:var(--ink-1);
+    border-radius:8px;padding:.4rem .8rem;cursor:pointer;
+  }
+
+  /* ---------- layout ---------- */
+  .grid{display:grid;grid-template-columns:1fr;gap:1.5rem;align-items:start}
+  @media (min-width:960px){ .grid{grid-template-columns:1fr 380px} }
+
+  .card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow)}
+
+  /* ---------- form ---------- */
+  .form-card{padding:1.5rem}
+  .form-section + .form-section{margin-top:1.5rem;padding-top:1.5rem;border-top:1px dashed var(--border)}
+  .section-label{
+    font-family:var(--font-mono);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-3);margin:0 0 .9rem;
+  }
+  .field-row{display:grid;grid-template-columns:1fr;gap:1rem}
+  @media (min-width:480px){ .field-row.cols-2{grid-template-columns:1fr 1fr} }
+  @media (min-width:480px){ .field-row.cols-3{grid-template-columns:1.4fr 1fr 1fr} }
+  .field{margin-bottom:1rem}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:.78rem;font-weight:600;color:var(--ink-1);margin-bottom:.35rem}
+  .field .hint{font-size:.72rem;color:var(--ink-3);margin:.3rem 0 0}
+  input[type="number"],input[type="date"],select{
+    width:100%;background:var(--card-bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:.6rem .7rem;color:var(--ink-1);font-size:.88rem;font-family:var(--font-mono);
+  }
+  select{font-family:var(--font-ui);appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+    background-position:calc(100% - 18px) center, calc(100% - 13px) center;background-size:5px 5px;background-repeat:no-repeat;
+    padding-right:2rem;
+  }
+  input:focus,select:focus{border-color:var(--focus)}
+  input:disabled,select:disabled{opacity:.55;cursor:not-allowed}
+
+  fieldset.segmented{border:none;margin:0;padding:0}
+  fieldset.segmented legend{font-size:.78rem;font-weight:600;color:var(--ink-1);margin-bottom:.35rem;padding:0}
+  .segmented-row{display:flex;gap:.4rem;flex-wrap:wrap}
+  .chip-btn{
+    flex:1;min-width:44px;padding:.55rem .4rem;text-align:center;border-radius:var(--radius-sm);
+    border:1px solid var(--border);background:var(--card-bg-2);color:var(--ink-2);
+    font-family:var(--font-mono);font-weight:700;font-size:.85rem;cursor:pointer;transition:.12s ease;
+  }
+  .chip-btn:hover{border-color:var(--border-strong)}
+  .chip-btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+  .oil-row{display:flex;align-items:center;gap:.75rem}
+  input[type="range"]{
+    flex:1;appearance:none;height:4px;border-radius:2px;background:var(--border-strong);outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;
+    border:2px solid var(--card-bg);box-shadow:0 0 0 1px var(--accent);
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--card-bg);box-shadow:0 0 0 1px var(--accent);
+  }
+  .oil-number{
+    width:6.5rem;flex:none;text-align:right;font-weight:700;
+  }
+
+  .derived-chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.55rem}
+  .derived-chip{
+    font-family:var(--font-mono);font-size:.7rem;color:var(--ink-2);background:var(--card-bg-2);
+    border:1px solid var(--border);border-radius:999px;padding:.25rem .6rem;
+  }
+
+  .switch-field{display:flex;align-items:flex-start;gap:.75rem}
+  .switch{position:relative;display:inline-flex;flex:none;width:42px;height:24px;cursor:pointer}
+  .switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+  .switch-track{
+    position:absolute;inset:0;background:var(--border-strong);border-radius:999px;transition:background .15s ease;
+  }
+  .switch-track::before{
+    content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+    background:var(--card-bg);transition:transform .15s ease;box-shadow:0 1px 2px rgba(0,0,0,.25);
+  }
+  .switch input:checked + .switch-track{background:var(--critical)}
+  .switch input:checked + .switch-track::before{transform:translateX(18px)}
+  .switch input:focus-visible + .switch-track{outline:2px solid var(--focus);outline-offset:2px}
+  .switch-label{font-size:.85rem;font-weight:600;color:var(--ink-1);cursor:pointer}
+
+  .submit-btn{
+    width:100%;margin-top:1.6rem;padding:.9rem 1rem;border:none;border-radius:var(--radius-sm);
+    background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:.92rem;letter-spacing:.01em;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:filter .12s ease, transform .08s ease;
+  }
+  .submit-btn:hover:not(:disabled){filter:brightness(1.06)}
+  .submit-btn:active:not(:disabled){transform:scale(.99)}
+  .submit-btn:disabled{opacity:.55;cursor:not-allowed}
+
+  .dots{display:inline-flex;gap:.22rem}
+  .dots span{width:5px;height:5px;border-radius:50%;background:currentColor;animation:bounce 1s infinite ease-in-out}
+  .dots span:nth-child(2){animation-delay:.15s}
+  .dots span:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+  @media (prefers-reduced-motion:reduce){ .dots span{animation:none;opacity:.8} }
+
+  /* ---------- receipt ---------- */
+  .receipt-card{
+    position:relative;padding:1.5rem 1.5rem 2.1rem;font-family:var(--font-mono);
+    border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .receipt-card::after{
+    content:"";position:absolute;left:0;right:0;bottom:-1px;height:14px;
+    background:
+      linear-gradient(45deg, var(--card-bg) 7px, transparent 0) 0 0/14px 14px repeat-x,
+      linear-gradient(-45deg, var(--card-bg) 7px, transparent 0) 0 0/14px 14px repeat-x;
+    background-position: left top, left top;
+    filter: drop-shadow(0 2px 1px rgba(18,20,15,0.05));
+  }
+  .receipt-head{text-align:center;margin-bottom:1rem}
+  .receipt-head .r-title{font-weight:800;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-1)}
+  .receipt-head .r-sub{font-size:.7rem;color:var(--ink-3);margin-top:.25rem}
+  .barcode{height:26px;margin:.9rem auto 0;max-width:220px;opacity:.55;
+    background:repeating-linear-gradient(90deg, var(--ink-1) 0 2px, transparent 2px 4px, var(--ink-1) 4px 5px, transparent 5px 8px, var(--ink-1) 8px 11px, transparent 11px 14px, var(--ink-1) 14px 15px, transparent 15px 18px);
+  }
+  .r-divider{border:none;border-top:1px dashed var(--border);margin:1.1rem 0}
+
+  .r-empty, .r-loading, .r-error{text-align:center;padding:1.5rem .5rem 1rem;color:var(--ink-2)}
+  .r-empty .r-icon, .r-error .r-icon{font-size:1.6rem;display:block;margin-bottom:.6rem}
+  .r-empty p, .r-error p{font-size:.8rem;line-height:1.5;max-width:32ch;margin:0 auto}
+  .r-loading p{font-size:.8rem}
+  .retry-btn{
+    margin-top:1rem;font-family:var(--font-ui);font-size:.78rem;font-weight:700;
+    background:var(--card-bg-2);border:1px solid var(--border-strong);color:var(--ink-1);
+    border-radius:8px;padding:.45rem .9rem;cursor:pointer;
+  }
+
+  .stamp{
+    display:inline-block;border:2px solid var(--critical);color:var(--critical);border-radius:6px;
+    padding:.15rem .55rem;font-weight:800;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+    transform:rotate(-5deg);margin-top:.6rem;
+  }
+
+  .pred-label{text-align:center;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem}
+  .pred-value{
+    text-align:center;font-size:clamp(2.4rem,9vw,3.1rem);font-weight:800;color:var(--ink-1);
+    font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em;
+  }
+  .pred-unit{text-align:center;font-size:.72rem;color:var(--ink-3);margin-top:.4rem}
+
+  .stat-chips{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1.1rem}
+  .stat-chip{
+    background:var(--card-bg-2);border:1px solid var(--border);border-radius:8px;
+    padding:.4rem .65rem;font-size:.72rem;color:var(--ink-1);text-align:center;
+  }
+  .stat-chip b{font-size:.85rem;display:block}
+  .mae-note{font-size:.7rem;color:var(--ink-3);text-align:center;margin-top:.7rem;line-height:1.5;font-family:var(--font-ui)}
+
+  .imp-title{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.7rem}
+  .imp-row{display:grid;grid-template-columns:minmax(78px,108px) 1fr 40px;gap:.55rem;align-items:center;margin-bottom:.55rem}
+  .imp-label{font-size:.7rem;color:var(--ink-2);font-family:var(--font-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .imp-track{height:8px;background:var(--card-bg-2);border:1px solid var(--border);border-radius:99px;overflow:hidden}
+  .imp-bar{height:100%;background:var(--accent);border-radius:99px;min-width:3px}
+  .imp-value{font-size:.68rem;color:var(--ink-1);text-align:right}
+
+  .skeleton{background:linear-gradient(90deg,var(--card-bg-2) 25%,var(--border) 37%,var(--card-bg-2) 63%);
+    background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:6px;}
+  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+  @media (prefers-reduced-motion:reduce){ .skeleton{animation:none} }
+  .skel-line{height:10px;margin:.5rem 0}
+
+  footer{margin-top:2.5rem;text-align:center;font-size:.72rem;color:var(--ink-3);line-height:1.7}
+  footer a{color:var(--ink-3);text-decoration:underline}
+
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  [hidden]{display:none !important}
+</style>
 </head>
 <body>
-  <div class="card">
-    <span class="badge">AI Demo</span>
-    <h1>Store Sales Evaluation</h1>
-    <p class="sub">Estimate weekly store sales based on location, store type, season, and promotions using a Gradient Boosting model.</p>
-    <hr class="divider">
-    <label>State</label>
-    <select id="state">
-      <option value="California">California</option>
-      <option value="Texas">Texas</option>
-      <option value="Florida">Florida</option>
-      <option value="New York" selected>New York</option>
-      <option value="Illinois">Illinois</option>
-    </select>
-    <div class="row">
+<div class="page">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">FS</span>
       <div>
-        <label>Store Type</label>
-        <select id="store_type">
-          <option value="A" selected>Type A (Large)</option>
-          <option value="B">Type B (Medium)</option>
-          <option value="C">Type C (Small)</option>
-        </select>
-      </div>
-      <div>
-        <label>Season / Quarter</label>
-        <select id="season">
-          <option value="Q1 (Jan-Mar)">Q1 (Jan-Mar)</option>
-          <option value="Q2 (Apr-Jun)">Q2 (Apr-Jun)</option>
-          <option value="Q3 (Jul-Sep)">Q3 (Jul-Sep)</option>
-          <option value="Q4 (Oct-Dec)" selected>Q4 (Oct-Dec)</option>
-        </select>
+        <p class="eyebrow">Corporación Favorita &middot; Ecuador retail network</p>
+        <h1>Store Sales Evaluation</h1>
       </div>
     </div>
-    <label>Temperature (F)</label>
-    <input type="number" id="temperature" value="72" min="20" max="110">
-    <label>Promotion Active</label>
-    <div class="promo-toggle">
-      <div class="promo-btn" id="promo-no" onclick="setPromo(0)">No Promotion</div>
-      <div class="promo-btn active" id="promo-yes" onclick="setPromo(1)">Active Promotion</div>
+    <div class="topbar-actions">
+      <span class="status-pill" id="conn-status"><span class="status-dot" id="conn-dot"></span><span id="conn-text">Connecting…</span></span>
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to light theme" aria-pressed="false">
+        <span id="theme-icon" aria-hidden="true">☾</span>
+      </button>
     </div>
-    <input type="hidden" id="promo" value="1">
-    <button onclick="predict()">Evaluate Sales</button>
-    <div id="result">
-      <p style="color:#64748b;font-size:.8rem">Estimated Weekly Sales</p>
-      <div class="pred" id="pred-value">-</div>
-      <div class="conf" id="conf-value">-</div>
-    </div>
+  </header>
+
+  <p class="lede">Estimate daily unit sales for any Favorita store and product family, trained on real point-of-sale history, oil prices and Ecuador's holiday calendar.</p>
+
+  <div class="banner" id="options-error" role="alert" hidden>
+    <span>⚠️ <strong>Can't reach the forecasting service.</strong> Make sure the backend is running, then try again.</span>
+    <button type="button" id="retry-options">Retry</button>
   </div>
-  <script>
-  function setPromo(val) {
-    document.getElementById('promo').value = val;
-    document.getElementById('promo-yes').classList.toggle('active', val === 1);
-    document.getElementById('promo-no').classList.toggle('active', val === 0);
+
+  <main class="grid">
+
+    <section class="card form-card" aria-labelledby="form-heading">
+      <h2 id="form-heading" class="visually-hidden">Forecast inputs</h2>
+      <form id="predict-form" novalidate>
+
+        <div class="form-section">
+          <p class="section-label">Store</p>
+          <div class="field-row cols-3">
+            <div class="field">
+              <label for="store_nbr">Store number</label>
+              <input type="number" id="store_nbr" name="store_nbr" min="1" max="54" step="1" value="12" required>
+              <p class="hint">1–54</p>
+            </div>
+            <div class="field">
+              <label for="cluster">Cluster</label>
+              <input type="number" id="cluster" name="cluster" min="1" max="17" step="1" value="8" required>
+              <p class="hint">1–17</p>
+            </div>
+            <div class="field">
+              <label for="onpromotion">On promotion</label>
+              <input type="number" id="onpromotion" name="onpromotion" min="0" step="1" value="3" required>
+              <p class="hint">items</p>
+            </div>
+          </div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label for="city">City</label>
+              <select id="city" name="city" required disabled><option value="">Loading…</option></select>
+            </div>
+            <div class="field">
+              <label for="state">State</label>
+              <select id="state" name="state" required disabled><option value="">Loading…</option></select>
+            </div>
+          </div>
+          <fieldset class="segmented" id="store-type-field">
+            <legend>Store type</legend>
+            <div class="segmented-row" id="store-type-row">
+              <button type="button" class="chip-btn" disabled>…</button>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="form-section">
+          <p class="section-label">Product</p>
+          <div class="field">
+            <label for="family">Product family</label>
+            <select id="family" name="family" required disabled><option value="">Loading…</option></select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <p class="section-label">Market conditions</p>
+          <div class="field">
+            <label for="oil_price">Crude oil price</label>
+            <div class="oil-row">
+              <input type="range" id="oil_price_range" min="20" max="120" step="0.1" value="52.3" aria-label="Crude oil price slider, USD per barrel">
+              <input type="number" id="oil_price" name="oil_price" min="0" max="200" step="0.1" value="52.3" class="oil-number" required>
+            </div>
+            <p class="hint">USD per barrel — Ecuador's economy tracks the price of crude closely.</p>
+          </div>
+
+          <div class="field">
+            <label for="sale_date">Date</label>
+            <input type="date" id="sale_date" name="sale_date" required>
+            <div class="derived-chips" id="date-derived" aria-live="polite"></div>
+          </div>
+
+          <div class="field">
+            <div class="switch-field">
+              <span class="switch">
+                <input type="checkbox" id="is_holiday" role="switch">
+                <span class="switch-track" aria-hidden="true"></span>
+              </span>
+              <div>
+                <label for="is_holiday" class="switch-label">Public holiday</label>
+                <p class="hint">Is this a national or regional holiday in Ecuador?</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn" disabled>
+          <span id="submit-label">Loading store data…</span>
+        </button>
+      </form>
+    </section>
+
+    <section class="card receipt-card" id="receipt" aria-live="polite" aria-labelledby="receipt-heading">
+      <div class="receipt-head">
+        <p class="r-title" id="receipt-heading">Sales forecast</p>
+        <p class="r-sub" id="receipt-sub">Favorita retail network &middot; Ecuador</p>
+      </div>
+      <div class="barcode" aria-hidden="true"></div>
+      <hr class="r-divider">
+
+      <div class="r-empty" id="r-empty">
+        <span class="r-icon" aria-hidden="true">🧾</span>
+        <p>No forecast yet. Fill in the store details and press <strong>Run forecast</strong> to print an estimate.</p>
+      </div>
+
+      <div class="r-loading" id="r-loading" hidden>
+        <p>Printing forecast <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span></p>
+        <div class="skeleton skel-line" style="width:70%;margin-left:auto;margin-right:auto"></div>
+        <div class="skeleton skel-line" style="width:45%;margin-left:auto;margin-right:auto"></div>
+      </div>
+
+      <div class="r-error" id="r-error" hidden>
+        <span class="r-icon" aria-hidden="true">✕</span>
+        <p id="r-error-msg">Couldn't print this forecast. Check the server and try again.</p>
+        <button type="button" class="retry-btn" id="retry-predict">Retry</button>
+      </div>
+
+      <div id="r-result" hidden>
+        <p class="pred-label">Predicted sales</p>
+        <div class="pred-value" id="pred-value">0</div>
+        <p class="pred-unit" id="pred-unit">units &middot; — · store #—</p>
+        <div id="holiday-stamp-wrap" style="text-align:center" hidden><span class="stamp">Holiday</span></div>
+
+        <div class="stat-chips">
+          <div class="stat-chip"><b id="chip-r2">—</b>model fit (R²)</div>
+          <div class="stat-chip"><b id="chip-mae">—</b>avg. error (MAE)</div>
+        </div>
+        <p class="mae-note" id="mae-note"></p>
+
+        <hr class="r-divider">
+        <p class="imp-title">Top drivers of this forecast</p>
+        <div id="imp-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Trained on the Corporación Favorita sales dataset (Kaggle: Store Sales – Time Series Forecasting).<br>
+    Educational portfolio demo — not intended for commercial forecasting.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- theme toggle ---------------- */
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('theme-toggle');
+  var themeIcon = document.getElementById('theme-icon');
+  function applyThemeUI(){
+    var theme = root.getAttribute('data-theme') || 'light';
+    themeIcon.textContent = theme === 'dark' ? '☾' : '☀';
+    themeBtn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    themeBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
   }
-  async function predict() {
-    const data = {
-      state: document.getElementById('state').value,
-      store_type: document.getElementById('store_type').value,
-      season: document.getElementById('season').value,
-      promo: parseInt(document.getElementById('promo').value),
-      temperature: parseFloat(document.getElementById('temperature').value),
+  applyThemeUI();
+  themeBtn.addEventListener('click', function(){
+    var next = (root.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('sse-theme', next); }catch(e){}
+    applyThemeUI();
+  });
+
+  /* ---------------- feature label helper ---------------- */
+  var FEATURE_LABELS = {
+    family_encoded: 'Product family',
+    family: 'Product family',
+    city_encoded: 'City',
+    city: 'City',
+    state_encoded: 'State',
+    state: 'State',
+    store_type_encoded: 'Store type',
+    store_type: 'Store type',
+    store_nbr: 'Store number',
+    onpromotion: 'Items on promotion',
+    cluster: 'Store cluster',
+    oil_price: 'Oil price',
+    day_of_week: 'Day of week',
+    month: 'Month',
+    is_weekend: 'Weekend',
+    day_of_month: 'Day of month',
+    is_holiday: 'Holiday'
+  };
+  function labelFor(key){
+    if (FEATURE_LABELS[key]) return FEATURE_LABELS[key];
+    return String(key)
+      .replace(/_encoded$/i, '')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  /* ---------------- elements ---------------- */
+  var citySelect = document.getElementById('city');
+  var stateSelect = document.getElementById('state');
+  var familySelect = document.getElementById('family');
+  var storeTypeRow = document.getElementById('store-type-row');
+  var submitBtn = document.getElementById('submit-btn');
+  var submitLabel = document.getElementById('submit-label');
+  var form = document.getElementById('predict-form');
+  var optionsError = document.getElementById('options-error');
+  var connDot = document.getElementById('conn-dot');
+  var connText = document.getElementById('conn-text');
+
+  var oilRange = document.getElementById('oil_price_range');
+  var oilNumber = document.getElementById('oil_price');
+  var dateInput = document.getElementById('sale_date');
+  var dateDerived = document.getElementById('date-derived');
+
+  var selectedStoreType = null;
+  var optionsLoaded = false;
+
+  /* ---------------- oil price sync ---------------- */
+  function syncOilFromRange(){
+    oilNumber.value = parseFloat(oilRange.value).toFixed(2);
+  }
+  function syncOilFromNumber(){
+    var v = parseFloat(oilNumber.value);
+    if (isNaN(v)) return;
+    oilRange.value = Math.min(Math.max(v, parseFloat(oilRange.min)), parseFloat(oilRange.max));
+  }
+  oilRange.addEventListener('input', syncOilFromRange);
+  oilNumber.addEventListener('input', syncOilFromNumber);
+
+  /* ---------------- date derivation ---------------- */
+  var WEEKDAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function todayISO(){
+    var d = new Date();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var day = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+  dateInput.value = todayISO();
+
+  function getDateParts(){
+    var val = dateInput.value;
+    if (!val) return null;
+    var d = new Date(val + 'T00:00:00');
+    if (isNaN(d.getTime())) return null;
+    var jsDay = d.getDay(); // 0=Sun..6=Sat
+    var day_of_week = (jsDay + 6) % 7; // 0=Mon..6=Sun (backend contract)
+    var is_weekend = (jsDay === 0 || jsDay === 6);
+    return {
+      day_of_week: day_of_week,
+      month: d.getMonth() + 1,
+      day_of_month: d.getDate(),
+      is_weekend: is_weekend,
+      weekdayName: WEEKDAY_NAMES[day_of_week],
+      monthName: MONTH_NAMES[d.getMonth()]
     };
-    try {
-      const r = await fetch('/predict', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-      const j = await r.json();
-      document.getElementById('pred-value').textContent = j.prediction;
-      document.getElementById('conf-value').textContent = 'Model Confidence: ' + (j.confidence * 100).toFixed(0) + '%';
-      document.getElementById('result').style.display = 'block';
-    } catch(e) {
-      alert('Error: ' + e.message);
-    }
   }
-  </script>
+  function renderDerivedChips(){
+    var parts = getDateParts();
+    if (!parts){ dateDerived.innerHTML = ''; return; }
+    dateDerived.innerHTML =
+      '<span class="derived-chip">' + parts.weekdayName + '</span>' +
+      '<span class="derived-chip">' + parts.monthName + '</span>' +
+      '<span class="derived-chip">' + (parts.is_weekend ? 'Weekend' : 'Weekday') + '</span>';
+  }
+  dateInput.addEventListener('change', renderDerivedChips);
+  renderDerivedChips();
+
+  /* ---------------- store type segmented control ---------------- */
+  function renderStoreTypes(types){
+    storeTypeRow.innerHTML = '';
+    types.forEach(function(t, i){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip-btn';
+      btn.textContent = t;
+      btn.setAttribute('aria-pressed', 'false');
+      btn.addEventListener('click', function(){
+        selectedStoreType = t;
+        Array.prototype.forEach.call(storeTypeRow.children, function(b){
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+        });
+        checkFormReady();
+      });
+      storeTypeRow.appendChild(btn);
+      if (i === 0){ selectedStoreType = t; btn.setAttribute('aria-pressed','true'); }
+    });
+  }
+
+  function populateSelect(selectEl, values){
+    selectEl.innerHTML = '';
+    values.slice().sort(function(a,b){ return a.localeCompare(b); }).forEach(function(v){
+      var opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      selectEl.appendChild(opt);
+    });
+    selectEl.disabled = false;
+  }
+
+  function setConnStatus(ok){
+    connDot.className = 'status-dot ' + (ok ? 'on' : 'off');
+    connText.textContent = ok ? 'Connected' : 'Offline';
+  }
+
+  function checkFormReady(){
+    var ready = optionsLoaded && !!selectedStoreType;
+    submitBtn.disabled = !ready;
+    submitLabel.textContent = ready ? 'Run forecast' : 'Loading store data…';
+  }
+
+  /* ---------------- load options ---------------- */
+  function loadOptions(){
+    optionsError.hidden = true;
+    setConnStatus(false);
+    connText.textContent = 'Connecting…';
+    fetch('/options')
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(data){
+        populateSelect(citySelect, data.cities || []);
+        populateSelect(stateSelect, data.states || []);
+        populateSelect(familySelect, data.families || []);
+        renderStoreTypes(data.store_types || ['A','B','C','D','E']);
+        optionsLoaded = true;
+        setConnStatus(true);
+        checkFormReady();
+      })
+      .catch(function(){
+        setConnStatus(false);
+        optionsError.hidden = false;
+        optionsLoaded = false;
+        checkFormReady();
+      });
+  }
+  document.getElementById('retry-options').addEventListener('click', loadOptions);
+  loadOptions();
+
+  /* ---------------- receipt state machine ---------------- */
+  var rEmpty = document.getElementById('r-empty');
+  var rLoading = document.getElementById('r-loading');
+  var rError = document.getElementById('r-error');
+  var rResult = document.getElementById('r-result');
+  var rErrorMsg = document.getElementById('r-error-msg');
+
+  function setReceiptState(state){
+    rEmpty.hidden = state !== 'empty';
+    rLoading.hidden = state !== 'loading';
+    rError.hidden = state !== 'error';
+    rResult.hidden = state !== 'result';
+  }
+
+  function renderImportance(list){
+    var container = document.getElementById('imp-list');
+    if (!list || !list.length){ container.innerHTML = ''; return; }
+    var sorted = list.slice().sort(function(a,b){ return b.importance - a.importance; }).slice(0, 8);
+    var max = Math.max.apply(null, sorted.map(function(f){ return f.importance; })) || 1;
+    container.innerHTML = sorted.map(function(f){
+      var pct = (f.importance / max) * 100;
+      var valuePct = (f.importance * 100).toFixed(1) + '%';
+      return (
+        '<div class="imp-row">' +
+          '<span class="imp-label">' + escapeHtml(labelFor(f.feature)) + '</span>' +
+          '<div class="imp-track"><div class="imp-bar" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+          '<span class="imp-value">' + valuePct + '</span>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function renderResult(data, payload){
+    document.getElementById('pred-value').textContent =
+      Number(data.predicted_sales).toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+    document.getElementById('pred-unit').textContent =
+      'units · ' + payload.family + ' · store #' + payload.store_nbr;
+
+    var stampWrap = document.getElementById('holiday-stamp-wrap');
+    stampWrap.hidden = !payload.is_holiday;
+
+    var r2 = Number(data.model_r2);
+    var mae = Number(data.model_mae);
+    document.getElementById('chip-r2').textContent = isNaN(r2) ? '—' : r2.toFixed(2);
+    document.getElementById('chip-mae').textContent = isNaN(mae) ? '—' : '±' + mae.toFixed(1);
+    document.getElementById('mae-note').textContent = isNaN(mae) ? '' :
+      'On average, this model’s predictions are off by about ' + mae.toFixed(1) + ' units in either direction.';
+
+    renderImportance(data.feature_importance);
+  }
+
+  /* ---------------- submit ---------------- */
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (submitBtn.disabled) return;
+    if (!form.reportValidity()) return;
+
+    var parts = getDateParts();
+    if (!parts){ return; }
+
+    var payload = {
+      store_nbr: parseInt(document.getElementById('store_nbr').value, 10),
+      family: familySelect.value,
+      onpromotion: parseInt(document.getElementById('onpromotion').value, 10),
+      city: citySelect.value,
+      state: stateSelect.value,
+      store_type: selectedStoreType,
+      cluster: parseInt(document.getElementById('cluster').value, 10),
+      oil_price: parseFloat(oilNumber.value),
+      day_of_week: parts.day_of_week,
+      month: parts.month,
+      is_weekend: parts.is_weekend,
+      day_of_month: parts.day_of_month,
+      is_holiday: document.getElementById('is_holiday').checked
+    };
+
+    runForecast(payload);
+  });
+
+  function runForecast(payload){
+    setReceiptState('loading');
+    fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(data){
+        renderResult(data, payload);
+        setReceiptState('result');
+      })
+      .catch(function(err){
+        rErrorMsg.textContent = 'Couldn’t print this forecast (' + err.message + '). Check the server and try again.';
+        setReceiptState('error');
+      });
+
+    document.getElementById('retry-predict').onclick = function(){ runForecast(payload); };
+  }
+
+})();
+</script>
 </body>
 </html>
